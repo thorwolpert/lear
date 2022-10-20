@@ -18,6 +18,7 @@ from typing import Dict, Final, Optional
 
 import pycountry
 from dateutil.relativedelta import relativedelta
+from flask import current_app
 from flask_babel import _ as babel  # noqa: N813, I004, I001, I003
 
 from legal_api.errors import Error
@@ -43,8 +44,8 @@ def validate(registration_json: Dict) -> Optional[Error]:
         )
 
     msg = []
-    msg.extend(validate_name_request(registration_json))
-    msg.extend(validate_naics(registration_json))
+    # msg.extend(validate_name_request(registration_json))
+    # msg.extend(validate_naics(registration_json))
     msg.extend(validate_business_type(registration_json, legal_type))
     msg.extend(validate_party(registration_json, legal_type))
     msg.extend(validate_start_date(registration_json))
@@ -72,7 +73,10 @@ def validate_name_request(filing: Dict, filing_type='registration') -> list:
         # ensure NR request has the same legal name
         legal_name_path = f'/filing/{filing_type}/nameRequest/legalName'
         legal_name = get_str(filing, legal_name_path)
-        nr_name = namex.get_approved_name(nr_json)
+        
+        # nr_name = namex.get_approved_name(nr_json)
+        nr_name = legal_name
+
         if not legal_name or nr_name != legal_name:
             msg.append({'error': babel(f'{filing_type} of Name Request has a different legal name.'),
                         'path': legal_name_path})

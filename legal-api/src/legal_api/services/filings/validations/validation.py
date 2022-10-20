@@ -15,6 +15,7 @@
 from http import HTTPStatus
 from typing import Dict
 
+from flask import current_app
 from flask_babel import _ as babel  # noqa: N813
 
 from legal_api.errors import Error
@@ -46,7 +47,9 @@ def validate(business: Business, filing_json: Dict) -> Error:  # pylint: disable
     """Validate the filing JSON."""
     err = validate_against_schema(filing_json)
     if err:
+        current_app.logger.info('Identifier: %s - Schema validation failed.', business.identifier)
         return err
+    current_app.logger.info('Identifier: %s - Schema validation passed.', business.identifier)
 
     err = None
 
@@ -164,6 +167,8 @@ def validate(business: Business, filing_json: Dict) -> Error:  # pylint: disable
                     err = conversion_validate(business, filing_json)
 
                 if err:
+                    current_app.logger.info('Identifier: %s - Validation failed.', business.identifier)
                     return err
 
+    current_app.logger.info('Identifier: %s - Validation passed.', business.identifier)
     return None

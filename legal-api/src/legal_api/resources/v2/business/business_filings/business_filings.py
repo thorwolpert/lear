@@ -98,6 +98,7 @@ def saving_filings(body: FilingModel,  # pylint: disable=too-many-return-stateme
                    identifier,
                    filing_id: Optional[int] = None):
     """Modify an incomplete filing for the business."""
+    current_app.logger.info('Starting basic checks and authorization for: %s', identifier)
     # basic checks
     business = Business.find_by_identifier(identifier)
     err_msg, err_code = ListFilingResource.put_basic_checks(identifier, filing_id, request, business)
@@ -109,6 +110,8 @@ def saving_filings(body: FilingModel,  # pylint: disable=too-many-return-stateme
     response, response_code = ListFilingResource.check_authorization(identifier, json_input, business)
     if response:
         return response, response_code
+    
+    current_app.logger.info('Completed basic checks and authorization for: %s', identifier)
 
     # get header params
     payment_account_id = request.headers.get('accountId', None)
@@ -120,8 +123,11 @@ def saving_filings(body: FilingModel,  # pylint: disable=too-many-return-stateme
             business_validate = RegistrationBootstrap.find_by_identifier(identifier)
         else:
             business_validate = business
+
+        current_app.logger.info('Identifier: %s - starting validation', identifier)
         err = validate(business_validate, json_input)
         if err or query.only_validate:
+            current_app.logger.info('Identifier: %s has errors or is validate_only.', identifier )
             if err:
                 json_input['errors'] = err.msg
                 return jsonify(json_input), err.code
